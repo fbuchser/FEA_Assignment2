@@ -1,4 +1,4 @@
-function [U,epsi,epsi1,epsi3,sigma,sigma1,sigma3] = solver_solid3D(nodes,elements,loads,bcs)
+function [U,epsi,epsi1,epsi3,sigma,sigma1,sigma3] = solid3D(nodes,elements,loads,bcs)
 
     %% SETUP
 

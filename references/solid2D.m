@@ -1,4 +1,4 @@
-function [u,epsi,sigma] = solver_solid2D(nodes,elements,load1,load2,bcs)
+function [u,epsi,sigma] = solid2D(nodes,elements,load1,load2,bcs)
 %NUMBER of NODES
 N = length(nodes(:,1));
 

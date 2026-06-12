@@ -7,6 +7,6 @@ load1 = [4 100 200 100]
 
 bcs = [1 0 0 0; 2 0 0 0; 3 0 0 0]
 
-[U, epsi, epsi1, epsi3, sigma, sigma1, sigma3] = solver_solid3D(nodes, elements, load1, bcs);
+[U, epsi, epsi1, epsi3, sigma, sigma1, sigma3] = solid3D(nodes, elements, load1, bcs);
 disp('Node 4 displacement:')
 disp(U(10:12))

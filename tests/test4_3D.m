@@ -26,6 +26,6 @@ load1 = [6 0 0 -25;
 
 bcs = [1 0 0 0; 2 0 0 0; 3 0 0 0; 4 0 0 0; 5 0 0 0; 8 0 0 0]
 
-[U, epsi, epsi1, epsi3, sigma, sigma1, sigma3] = solver_solid3D(nodes, elements, load1, bcs);
+[U, epsi, epsi1, epsi3, sigma, sigma1, sigma3] = solid3D(nodes, elements, load1, bcs);
 disp('Free node displacements (nodes 6,7):')
 disp(U(16:21))
