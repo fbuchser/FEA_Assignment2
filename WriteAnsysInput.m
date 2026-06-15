@@ -82,10 +82,10 @@
 %
 %For material mapping methods C and D, a initial simulation step is
 %included in the RunAnsysModelC.inp and RunAnsysModelD.inp where
-%temperature (equal to Youngï¿½s modulus) is assigned to all the nodes. This
+%temperature (equal to Young´s modulus) is assigned to all the nodes. This
 %initial step, with no mechanical load, is used to make sure that ANSYS
 %does not ramp the temperature load with the ANSYS timesteps. This ensures
-%that the full temperature is applied to the nodes (and thus the Youngï¿½s
+%that the full temperature is applied to the nodes (and thus the Young´s
 %modulus) when the mechanical load is applied to the model in the second
 %loading step.
 %
@@ -195,10 +195,10 @@ switch Method
         El_E = ELEMENTS(:,12);
         
         if (isempty(EminShell))
-            error('*****Min Cortical Youngï¿½s modulus needs to greater than 0*****')
+            error('*****Min Cortical Young´s modulus needs to greater than 0*****')
         end
         if (EminShell <= 0)
-            error('*****Min Cortical Youngï¿½s modulus needs to greater than 0*****')
+            error('*****Min Cortical Young´s modulus needs to greater than 0*****')
         end
         if isempty(ShellTh)
             error('*****Shell thickness needs to be larger than 0 for method E*****')
@@ -337,7 +337,7 @@ function [El_Mat,E_Mat] = WriteMatFile(El_E,NumOfMats,Method,EminShell,Ecort,She
     %The length is equal to NumOfMats minus the number of material cards
     %not used.
     %Switch this on if you want to exclude material cards in your model
-    %not used by any elements. If you donï¿½t switch this on the number of
+    %not used by any elements. If you don´t switch this on the number of
     %material cards in your model will be equal to the NumOfMats.
     %E_Mat(~UsedMat)=[];
 
@@ -382,7 +382,7 @@ function [El_Mat,E_Mat] = WriteMatFile(El_E,NumOfMats,Method,EminShell,Ecort,She
         fprintf(fid0,'tem = \r\n');
         fprintf(fid0,'*DIM,factor,array,NNN\r\n');
         %We define a 10 MPa min modules, otherwise Ansys will complain
-        %about negative or zero Youngï¿½s modulus being used.
+        %about negative or zero Young´s modulus being used.
         fprintf(fid0,'*SET,tem,-50000,10,2392,4735,7077,8000,8500,9000,max_NodeE,50000\r\n');
         fprintf(fid0,'factor(1) = 1.0*10/max_NodeE\r\n');
         fprintf(fid0,'factor(10) = 1.0*max_NodeE/max_NodeE\r\n');
