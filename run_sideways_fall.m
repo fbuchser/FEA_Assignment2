@@ -1,9 +1,11 @@
 %% LOAD INPUT
+disp('Loading Femur Input');
 
 load('data\FemurInput.mat')
 
 
 %% BOUNDARY CONDITIONS
+disp('Setting Boundary Conditions');
 
 % Shaft support
 MinShaftZ = min(nodes(:,4));
@@ -29,19 +31,27 @@ bc3 = [bc_nodes3 -1*ones(nn,1) zeros(nn,1) NaN(nn,1)];
 bcs = [bc1; bc2; bc3]; % -1mm: displacement of 1 mm at the greater trochanter 
 
 %% LOADS
+disp('Setting Loads');
+
 loads = [1 0 0 0]; % no external force — loading is via prescribed displacement at GT
 
 
 %% RUN SOLVER
+disp('Running Solver');
+
 [U, epsi, epsi1, epsi3, sigma, sigma1, sigma3] = solid3D(nodes, elements, loads, bcs);
 
 
 %% SAVE OUTPUT
+disp('Saving Solver Results');
+
 OutputPath = 'results\';
 if ~exist(OutputPath, 'dir'), mkdir('results'); end
 
-save(fullfile(OutputPath, 'sideways_fall_results.mat'), 'U', 'epsi', 'epsi1', 'epsi3', 'sigma', 'sigma1', 'sigma3')
+save(fullfile(OutputPath, 'sideways_fall_results.mat'), 'bcs', 'U', 'epsi', 'epsi1', 'epsi3', 'sigma', 'sigma1', 'sigma3')
 
 
 %% PLOT SOLVER RESULTS
-plot_femur_results(nodes, elements, U, epsi1, epsi3, OutputPath, 'Sideways Fall')
+disp('-- Plotting Solver Results --');
+
+plot_femur_results(nodes, elements, U, epsi1, epsi3, bcs, OutputPath, 'Sideways Fall')

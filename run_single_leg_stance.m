@@ -1,9 +1,11 @@
 %% LOAD INPUT
+disp('Loading Femur Input');
 
 load('data\FemurInput.mat')
 
 
 %% BOUNDARY CONDITIONS
+disp('Setting Boundary Conditions');
 
 % Shaft support
 MinShaftZ = min(nodes(:,4));
@@ -14,6 +16,8 @@ bcs = [bc_nodes1 zeros(nn,1) zeros(nn,1) zeros(nn,1)];
 
 
 %% LOADS
+disp('Setting Loads');
+
 team_weight =  65 + 59;
 F_total = team_weight * 9.81;
 
@@ -31,15 +35,21 @@ nn_head = length(head_nodes);
 loads = [head_nodes, (Fx/nn_head)*ones(nn_head,1), (Fy/nn_head)*ones(nn_head,1), (Fz/nn_head)*ones(nn_head,1)];
 
 %% RUN SOLVER
+disp('Running Solver');
+
 [U, epsi, epsi1, epsi3, sigma, sigma1, sigma3] = solid3D(nodes, elements, loads, bcs);
 
 
 %% SAVE OUTPUT
+disp('Saving Solver Results');
+
 OutputPath = 'results\';
 if ~exist(OutputPath, 'dir'), mkdir('results'); end
 
-save(fullfile(OutputPath, 'single_leg_stance_results.mat'), 'U', 'epsi', 'epsi1', 'epsi3', 'sigma', 'sigma1', 'sigma3')
+save(fullfile(OutputPath, 'single_leg_stance_results.mat'), 'bcs', 'U', 'epsi', 'epsi1', 'epsi3', 'sigma', 'sigma1', 'sigma3')
 
 
 %% PLOT SOLVER RESULTS
-plot_femur_results(nodes, elements, U, epsi1, epsi3, OutputPath, 'Single Leg Stance')
+disp('-- Plotting Solver Results --');
+
+plot_femur_results(nodes, elements, U, epsi1, epsi3, bcs, OutputPath, 'Single Leg Stance')
