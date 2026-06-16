@@ -169,7 +169,7 @@ function [Be, De, Ve] = element_matrices(node_coords, E, nu)
     % Je maps physical->reference, Ji=inv(Je) maps reference->physical
     dx = node_coords(2:4,:) - node_coords(1,:);  % 3x3, differences from node 1
     Je = dx';
-    Ve  = det(Je) / 6;
+    Ve  = abs(det(Je)) / 6;
 
     dN_ref = [ 1  0  0 -1;
                0  1  0 -1;
