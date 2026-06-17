@@ -54,4 +54,4 @@ save(fullfile(OutputPath, 'sideways_fall_results.mat'), 'bcs', 'U', 'epsi', 'eps
 %% PLOT SOLVER RESULTS
 disp('-- Plotting Solver Results --');
 
-plot_femur_results(nodes, elements, U, epsi1, epsi3, bcs, OutputPath, 'Sideways Fall')
+plot_femur_results(nodes, elements, U, sigma1, sigma3, bcs, loads, OutputPath, 'Sideways Fall')

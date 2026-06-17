@@ -28,7 +28,7 @@ Fx = -F_total * sind(7) * cosd(28);  % medial = negative X
 Fy = -F_total * sind(7) * sind(28);  % anterior direction = negative Y
 
 MaxHeadZ = max(nodes(:,4));
-I_head = nodes(:,4) < MaxHeadZ+5;
+I_head = nodes(:,4) > MaxHeadZ-5;
 head_nodes = nodes(I_head,1);
 nn_head = length(head_nodes);
 
@@ -52,4 +52,4 @@ save(fullfile(OutputPath, 'single_leg_stance_results.mat'), 'bcs', 'U', 'epsi', 
 %% PLOT SOLVER RESULTS
 disp('-- Plotting Solver Results --');
 
-plot_femur_results(nodes, elements, U, epsi1, epsi3, bcs, OutputPath, 'Single Leg Stance')
+plot_femur_results(nodes, elements, U, sigma1, sigma3, bcs, loads, OutputPath, 'Single Leg Stance')
