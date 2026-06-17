@@ -27,8 +27,8 @@ Fz =  F_total * cosd(7);             % proximal (along shaft)
 Fx = -F_total * sind(7) * cosd(28);  % medial = negative X
 Fy = -F_total * sind(7) * sind(28);  % anterior direction = negative Y
 
-MinHeadX = min(nodes(:,2));
-I_head = nodes(:,2) < MinHeadX+5;
+MaxHeadZ = max(nodes(:,4));
+I_head = nodes(:,4) < MaxHeadZ+5;
 head_nodes = nodes(I_head,1);
 nn_head = length(head_nodes);
 
