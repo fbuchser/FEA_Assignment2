@@ -17,16 +17,12 @@ bc_marked = coords(bcs(:,1), :);
 non_null_loads = loads(any(loads(:,2:4) ~= 0, 2), :);
 loads_marked = coords(non_null_loads(:,1), :);
 
-disp(size(bc_marked))
-disp(size(bcs))
-disp(size(loads_marked))
-disp(size(loads))
-
 % Plot c data prep
 n_nodes = size(nodes, 1);
 U_mat = reshape(U, 3, n_nodes)';
 def_mag = sqrt(sum(U_mat.^2, 2));
 def_mag_elem = mean(def_mag(conn), 2);
+
 
 %% (a) Input mesh
 disp('Plotting Input Mesh');
@@ -152,8 +148,8 @@ if strcmp(title_str, 'Sideways Fall')
     view2_title = 'Lateral-Posterior';
     view2_pos = 0.95;
 elseif  strcmp(title_str, 'Single Leg Stance')
-    view2_az = -30;
-    view2_el = 30;
+    view2_az = -15;
+    view2_el = 15;
     view2_title = 'Medial-Posterior';
     view2_pos = 0.9;
 end

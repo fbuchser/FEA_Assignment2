@@ -39,14 +39,14 @@ def inspect_emod(mesh, E_vals, title_str):
     pl.show()
 
 
-def inspect_outputs(mesh, def_mag_elem, epsi1, epsi3, title_str):
+def inspect_outputs(mesh, def_mag_elem, sigma1, sigma3, title_str):
     pl = pv.Plotter(shape=(1, 3), window_size=(2800, 850))
     pl.set_background("white")
 
     datasets = [
         (def_mag_elem, "||u|| [mm]",  "Deformation magnitude"),
-        (epsi1,        "e1",          "Max principal strain e1"),
-        (epsi3,        "e3",          "Min principal strain e3"),
+        (sigma1,       "s1",          "Max principal stress s1"),
+        (sigma3,       "s3",          "Min principal stress s3"),
     ]
 
     for col, (scalars, bar_title, subplot_title) in enumerate(datasets):
@@ -82,8 +82,8 @@ for title_str, mat_path in SCENARIOS.items():
     res   = loadmat(mat_path)
     bcs   = res["bcs"]
     U     = res["U"].ravel()
-    epsi1 = res["epsi1"].ravel()
-    epsi3 = res["epsi3"].ravel()
+    sigma1 = res["sigma1"].ravel()
+    sigma3 = res["sigma3"].ravel()
 
     bc_node_ids  = bcs[:, 0].astype(int) - 1
     bc_coords    = coords[bc_node_ids]
@@ -94,4 +94,4 @@ for title_str, mat_path in SCENARIOS.items():
 
     inspect_mesh(mesh, bc_coords, title_str)
     inspect_emod(mesh, E_vals, title_str)
-    inspect_outputs(mesh, def_mag_elem, epsi1, epsi3, title_str)
+    inspect_outputs(mesh, def_mag_elem, sigma1, sigma3, title_str)
