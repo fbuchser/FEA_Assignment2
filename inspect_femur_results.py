@@ -20,10 +20,13 @@ def inspect_mesh(mesh, bc_coords, load_coords, title_str):
     pl.set_background("white")
     pl.add_mesh(mesh, color=[0.4, 0.8, 0.7], opacity=0.6,
                 show_edges=True, edge_color="gray")
-    pl.add_points(pv.PolyData(bc_coords), color="blue",
-                  point_size=8, render_points_as_spheres=True)
-    pl.add_points(pv.PolyData(load_coords), color="red",
-                  point_size=8, render_points_as_spheres=True)
+    if bc_coords.size:
+        pl.add_points(pv.PolyData(bc_coords), color="blue",
+                      point_size=8, render_points_as_spheres=True)
+    if load_coords.size:
+        pl.add_points(pv.PolyData(load_coords), color="red",
+                      point_size=8, render_points_as_spheres=True)
+    
     pl.add_text(f'Input mesh – "{title_str}"', font_size=11, color="black")
     pl.add_axes(xlabel="X [mm]", ylabel="Y [mm]", zlabel="Z [mm]")
     pl.show()
@@ -90,8 +93,9 @@ for title_str, mat_path in SCENARIOS.items():
     bc_node_ids  = bcs[:, 0].astype(int) - 1
     bc_coords    = coords[bc_node_ids]
 
+    loads = res["loads"]
     non_null_mask = np.any(loads[:, 1:4] != 0, axis=1)
-    loads_node_ids = res["loads"][non_null_mask, 0].astype(int) - 1
+    loads_node_ids = loads[non_null_mask, 0].astype(int) - 1
     load_coords    = coords[loads_node_ids]
 
     U_mat        = U.reshape(n_nodes, 3)
