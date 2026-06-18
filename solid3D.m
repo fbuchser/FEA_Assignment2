@@ -34,7 +34,7 @@ function [U,epsi,epsi1,epsi3,sigma,sigma1,sigma3] = solid3D(nodes,elements,loads
         dofs = reshape([3*node_ids-2; 3*node_ids-1; 3*node_ids], 1, []);
         
         idx = (i-1)*144 + 1 : i*144;
-        [di, dj] = meshgrid(dofs, dofs);
+        [di, dj] = ndgrid (dofs, dofs);
         K_i(idx) = di(:);
         K_j(idx) = dj(:);
         K_v(idx) = ke(:);
@@ -52,48 +52,46 @@ function [U,epsi,epsi1,epsi3,sigma,sigma1,sigma3] = solid3D(nodes,elements,loads
 
 
     %% BOUNDARY CONDITIONS
+    F_old = F;
     n_constrained = sum(~isnan(bcs(:,2:4)), 'all');
     constrained = zeros(n_constrained, 1);
     c_idx = 1;
-
+    
     for i = 1:size(bcs,1)
         node_id = bcs(i,1);
         r    = bcs(i,2:4);
         dofs = [3*node_id-2, 3*node_id-1, 3*node_id];
-
+    
         for j = 1:3
+            d = dofs(j);
             if ~isnan(r(j))
-                d = dofs(j);
-
-                % F correction - find triplets in column d
-                col_mask = (K_j == d);
-                F(K_i(col_mask)) = F(K_i(col_mask)) - K_v(col_mask) * r(j);
-
                 % zero row d - find triplets where row is d
-                K_v(K_i == d) = 0;
-
-                % zero column d - find triplets where col is d
-                K_v(K_j == d) = 0;
-
+                K_v(K_i == d) = 0;   % zero row only, no column
+                
                 % set prescribed value
                 F(d) = r(j);
-                
+
                 % for additional diagonal triplet values
                 constrained(c_idx) = d;
                 c_idx = c_idx + 1;
+            else
+                F(d) = NaN;
             end
         end
     end
-
+    
+    nan_mask = isnan(F);
+    F(nan_mask) = F_old(nan_mask);
+    
     % add diagonal entries all at once
     K_i = [K_i; constrained];
     K_j = [K_j; constrained];
     K_v = [K_v; ones(numel(constrained),1)];
-
+    
     % K-Matrix: Build sparse K
     K = sparse(K_i, K_j, K_v, 3*n_nodes, 3*n_nodes);
-
-
+    
+    
     %% SOLVE
     U = K\F;
 
@@ -161,13 +159,15 @@ function [U,epsi,epsi1,epsi3,sigma,sigma1,sigma3] = solid3D(nodes,elements,loads
         sigma1(i) = sv(3);  % max principal stress
         sigma3(i) = sv(1);  % min principal stress
     end
+   
 end
+
 
 %% SUBFUNCTIONS
 function [Be, De, Ve] = element_matrices(node_coords, E, nu)
     % Jacobian: relates physical and reference coordinate derivatives (Kochmann §15.2)
     % Je maps physical->reference, Ji=inv(Je) maps reference->physical
-    dx = node_coords(2:4,:) - node_coords(1,:);  % 3x3, differences from node 1
+    dx = node_coords(1:3,:) - node_coords(4,:);  % 3x3, differences from node 4
     Je = dx';
     Ve  = abs(det(Je)) / 6;
 
@@ -175,7 +175,7 @@ function [Be, De, Ve] = element_matrices(node_coords, E, nu)
                0  1  0 -1;
                0  0  1 -1];   % 3x4, col a -> node a (reference for Na calc)
 
-    dN_phys = Je \ dN_ref;    % 3x4, inv(Je) * dN_ref
+    dN_phys = Je' \ dN_ref;   % 3x4, inv(Je) * dN_ref
     
     % B-Matrix: holds derivatives of Na
     Be = zeros(6,12);
@@ -201,3 +201,5 @@ function [Be, De, Ve] = element_matrices(node_coords, E, nu)
          0     0     0     0           (1-2*nu)/2  0;
          0     0     0     0           0           (1-2*nu)/2];
 end
+
+
