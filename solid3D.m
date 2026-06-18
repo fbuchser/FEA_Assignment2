@@ -167,15 +167,17 @@ end
 function [Be, De, Ve] = element_matrices(node_coords, E, nu)
     % Jacobian: relates physical and reference coordinate derivatives (Kochmann §15.2)
     % Je maps physical->reference, Ji=inv(Je) maps reference->physical
-    dx = node_coords(1:3,:) - node_coords(4,:);  % 3x3, differences from node 4
-    Je = dx';
+    Je = node_coords(1:3,:) - node_coords(4,:);  % 3x3, differences from node 4 
+    % Jacobian of the element
+    % row_a = (x^a - x^4)
+    % columns are the x,y,z coordinate differences between nodes 1-3 and reference node 4
     Ve  = abs(det(Je)) / 6;
 
     dN_ref = [ 1  0  0 -1;
                0  1  0 -1;
-               0  0  1 -1];   % 3x4, col a -> node a (reference for Na calc)
+               0  0  1 -1];  % 3x4, col a = reference gradient of Na
 
-    dN_phys = Je' \ dN_ref;   % 3x4, inv(Je) * dN_ref
+    dN_phys = Je \ dN_ref;   % 3x4, col a = physical gradient of Na
     
     % B-Matrix: holds derivatives of Na
     Be = zeros(6,12);
