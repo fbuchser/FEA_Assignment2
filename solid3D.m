@@ -165,7 +165,7 @@ end
 
 %% SUBFUNCTIONS
 function [Be, De, Ve] = element_matrices(node_coords, E, nu)
-    % Jacobian: relates physical and reference coordinate derivatives (Kochmann §15.2)
+    % Jacobian: relates physical and reference coordinate derivatives (Kochmann §16.9 extended to 3D)
     % Je maps physical->reference, Ji=inv(Je) maps reference->physical
     Je = node_coords(1:3,:) - node_coords(4,:);  % 3x3, differences from node 4 
     % Jacobian of the element
