@@ -41,7 +41,7 @@ hold off
 axis equal; view(-150, 30);
 set(gca, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'ZColor', 'k')
 
-title(['Input mesh with marked constrained nodes - ' title_str], 'Color', 'k')
+title(['Input mesh with marked constrained nodes - ' title_str], 'Color', 'k', 'FontWeight','normal')
 xlabel('X [mm]'); ylabel('Y [mm]'); zlabel('Z [mm]')
 
 fprintf('Plot (a) time: %.2f s\n', toc(t_plot))
@@ -238,80 +238,80 @@ close(figC3)
 
 fprintf('Save (c3) time: %.2f s\n', toc(t_plot))
 
-
-% epsi1
-disp('Plotting Output Epsi1');
-t_plot = tic; 
-
-figC2 = figure('Name', [title_str ' - Output: Maximal Principal Strain'], 'Color', 'w', 'Visible', 'off');
-
-t = tiledlayout(1, 2, 'TileSpacing', 'compact', 'Padding', 'loose');
-t.OuterPosition = [0 0 1 0.95];
-
-nexttile
-tetramesh(conn, coords, epsi1); colormap(jet);
-axis equal; view(-150, 30);
-set(gca, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'ZColor', 'k')
-t_title = title('Anterior'); t_title.FontSize = 9;
-t_title.Units = 'normalized'; t_title.Position(2) = 0.9;
-xlabel('X [mm]'); ylabel('Y [mm]'); zlabel('Z [mm]')
-
-nexttile
-tetramesh(conn, coords, epsi1); colormap(jet);
-axis equal; view(view2_az, view2_el);
-set(gca, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'ZColor', 'k')
-t_title = title(view2_title); t_title.FontSize = 9;
-t_title.Units = 'normalized'; t_title.Position(2) = view2_pos;
-xlabel('X [mm]'); ylabel('Y [mm]'); zlabel('Z [mm]')
-
-cb = colorbar; cb.Color = 'k';
-sgtitle(['Output: Maximal principal strain - ' title_str], 'Color', 'k', 'interpreter','latex', 'FontWeight', 'normal')
-
-fprintf('Plot (c4) time: %.2f s\n', toc(t_plot))
-t_plot = tic;
-
-disp('Saving Output Epsi1');
-exportgraphics(figC2, fullfile(OutputPath, [file_str '_out_epsi1.png']), 'BackgroundColor', 'w', 'Resolution', 300)
-close(figC2)
-
-fprintf('Save (c4) time: %.2f s\n', toc(t_plot))
-
-
-% sigma3 
-disp('Plotting Output Epsi3');
-t_plot = tic; 
-
-figC3 = figure('Name', [title_str ' - Output: Minimal Principal Strain'], 'Color', 'w', 'Visible', 'off');
-
-t = tiledlayout(1, 2, 'TileSpacing', 'compact', 'Padding', 'loose');
-t.OuterPosition = [0 0 1 0.95];
-
-nexttile
-tetramesh(conn, coords, epsi3); colormap(jet);
-axis equal; view(-150, 30);
-set(gca, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'ZColor', 'k')
-t_title = title('Anterior'); t_title.FontSize = 9;
-t_title.Units = 'normalized'; t_title.Position(2) = 0.9;
-xlabel('X [mm]'); ylabel('Y [mm]'); zlabel('Z [mm]')
-
-nexttile
-tetramesh(conn, coords, epsi3); colormap(jet);
-axis equal; view(view2_az, view2_el);
-set(gca, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'ZColor', 'k')
-t_title = title(view2_title); t_title.FontSize = 9;
-t_title.Units = 'normalized'; t_title.Position(2) = view2_pos;
-xlabel('X [mm]'); ylabel('Y [mm]'); zlabel('Z [mm]')
-
-cb = colorbar; cb.Color = 'k';
-sgtitle(['Output: Minimal principal strain - ' title_str], 'Color', 'k', 'interpreter','latex', 'FontWeight', 'normal')
-
-fprintf('Plot (c5) time: %.2f s\n', toc(t_plot))
-t_plot = tic;
-
-disp('Saving Output Epsi3');
-exportgraphics(figC3, fullfile(OutputPath, [file_str '_out_epsi3.png']), 'BackgroundColor', 'w', 'Resolution', 300)
-close(figC3)
-
-fprintf('Save (c5) time: %.2f s\n', toc(t_plot))
+% 
+% % epsi1
+% disp('Plotting Output Epsi1');
+% t_plot = tic; 
+% 
+% figC2 = figure('Name', [title_str ' - Output: Maximal Principal Strain'], 'Color', 'w', 'Visible', 'off');
+% 
+% t = tiledlayout(1, 2, 'TileSpacing', 'compact', 'Padding', 'loose');
+% t.OuterPosition = [0 0 1 0.95];
+% 
+% nexttile
+% tetramesh(conn, coords, epsi1); colormap(jet);
+% axis equal; view(-150, 30);
+% set(gca, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'ZColor', 'k')
+% t_title = title('Anterior'); t_title.FontSize = 9;
+% t_title.Units = 'normalized'; t_title.Position(2) = 0.9;
+% xlabel('X [mm]'); ylabel('Y [mm]'); zlabel('Z [mm]')
+% 
+% nexttile
+% tetramesh(conn, coords, epsi1); colormap(jet);
+% axis equal; view(view2_az, view2_el);
+% set(gca, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'ZColor', 'k')
+% t_title = title(view2_title); t_title.FontSize = 9;
+% t_title.Units = 'normalized'; t_title.Position(2) = view2_pos;
+% xlabel('X [mm]'); ylabel('Y [mm]'); zlabel('Z [mm]')
+% 
+% cb = colorbar; cb.Color = 'k';
+% sgtitle(['Output: Maximal principal strain - ' title_str], 'Color', 'k', 'interpreter','latex', 'FontWeight', 'normal')
+% 
+% fprintf('Plot (c4) time: %.2f s\n', toc(t_plot))
+% t_plot = tic;
+% 
+% disp('Saving Output Epsi1');
+% exportgraphics(figC2, fullfile(OutputPath, [file_str '_out_epsi1.png']), 'BackgroundColor', 'w', 'Resolution', 300)
+% close(figC2)
+% 
+% fprintf('Save (c4) time: %.2f s\n', toc(t_plot))
+% 
+% 
+% % sigma3 
+% disp('Plotting Output Epsi3');
+% t_plot = tic; 
+% 
+% figC3 = figure('Name', [title_str ' - Output: Minimal Principal Strain'], 'Color', 'w', 'Visible', 'off');
+% 
+% t = tiledlayout(1, 2, 'TileSpacing', 'compact', 'Padding', 'loose');
+% t.OuterPosition = [0 0 1 0.95];
+% 
+% nexttile
+% tetramesh(conn, coords, epsi3); colormap(jet);
+% axis equal; view(-150, 30);
+% set(gca, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'ZColor', 'k')
+% t_title = title('Anterior'); t_title.FontSize = 9;
+% t_title.Units = 'normalized'; t_title.Position(2) = 0.9;
+% xlabel('X [mm]'); ylabel('Y [mm]'); zlabel('Z [mm]')
+% 
+% nexttile
+% tetramesh(conn, coords, epsi3); colormap(jet);
+% axis equal; view(view2_az, view2_el);
+% set(gca, 'Color', 'w', 'XColor', 'k', 'YColor', 'k', 'ZColor', 'k')
+% t_title = title(view2_title); t_title.FontSize = 9;
+% t_title.Units = 'normalized'; t_title.Position(2) = view2_pos;
+% xlabel('X [mm]'); ylabel('Y [mm]'); zlabel('Z [mm]')
+% 
+% cb = colorbar; cb.Color = 'k';
+% sgtitle(['Output: Minimal principal strain - ' title_str], 'Color', 'k', 'interpreter','latex', 'FontWeight', 'normal')
+% 
+% fprintf('Plot (c5) time: %.2f s\n', toc(t_plot))
+% t_plot = tic;
+% 
+% disp('Saving Output Epsi3');
+% exportgraphics(figC3, fullfile(OutputPath, [file_str '_out_epsi3.png']), 'BackgroundColor', 'w', 'Resolution', 300)
+% close(figC3)
+% 
+% fprintf('Save (c5) time: %.2f s\n', toc(t_plot))
 
 end
