@@ -25,7 +25,7 @@ PLOT_CMAP = "coolwarm"
 N_LABELS = 5
 SHOW_EDGES = False
 TITLE_STR = "Sideways Fall"
-OUTPUT_DIR = Path("output")
+OUTPUT_DIR = Path(r"results_ansys\compare")
 
 
 # ── Regex ─────────────────────────────────────────────────────────────────────
