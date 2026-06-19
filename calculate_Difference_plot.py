@@ -1,6 +1,8 @@
 import re
 import numpy as np
 import pyvista as pv
+import matplotlib.pyplot as plt
+from matplotlib import colors
 from pathlib import Path
 from scipy.io import loadmat
 
@@ -23,6 +25,7 @@ PLOT_CMAP = "coolwarm"
 N_LABELS = 5
 SHOW_EDGES = False
 TITLE_STR = "Sideways Fall"
+OUTPUT_DIR = Path("output")
 
 
 # ── Regex ─────────────────────────────────────────────────────────────────────
@@ -218,50 +221,168 @@ def symmetric_limits(*arrays):
     return (-vmax, vmax) if vmax != 0 else (-1.0, 1.0)
 
 
-def add_diff_plot(plotter, mesh, values, title, scalar_name, clim):
-    m = mesh.copy()
-    m.cell_data[scalar_name] = values
-    plotter.add_mesh(
-        m,
-        scalars=scalar_name,
-        cmap=PLOT_CMAP,
-        clim=clim,
-        show_edges=SHOW_EDGES,
-        scalar_bar_args={"title": scalar_name, "color": "black", "n_labels": N_LABELS},
-    )
-    plotter.add_text(title, font_size=10, color="black")
-    plotter.add_axes(xlabel="X [mm]", ylabel="Y [mm]", zlabel="Z [mm]")
+# Fixed Matplotlib views (elev, azim) chosen to mimic the reference figure
+MATPLOTLIB_VIEWS = [
+    (15, 145,  "Anterior"),
+    (15, -5, "Lateral-Posterior"),
+
+
+
+
+
+]
 
 
 def plot_difference_fields(mesh, diff_fields, title_str):
-    disp_clim = symmetric_limits(diff_fields["du_mag"])
-    stress_clim = symmetric_limits(diff_fields["ds1"], diff_fields["ds3"])
-    strain_clim = symmetric_limits(diff_fields["de1"], diff_fields["de3"])
-    uz_clim = symmetric_limits(diff_fields["duz"])
+    """
+    Save one static PNG per field using Matplotlib 3D trisurfaces.
+    This avoids PyVista screenshot / off-screen rendering issues.
+    """
+    OUTPUT_DIR.mkdir(exist_ok=True)
 
-    pl = pv.Plotter(shape=(2, 3), window_size=(3000, 1600))
-    pl.set_background("white")
+    points = np.asarray(mesh.points)
+    cells = mesh.cells.reshape(-1, 5)[:, 1:5]  # tetra connectivity
+
+    # Build triangle faces from tetrahedra and keep only boundary triangles
+    tri_faces = np.vstack([
+        cells[:, [0, 1, 2]],
+        cells[:, [0, 1, 3]],
+        cells[:, [0, 2, 3]],
+        cells[:, [1, 2, 3]],
+    ])
+    tri_sorted = np.sort(tri_faces, axis=1)
+    uniq, counts = np.unique(tri_sorted, axis=0, return_counts=True)
+    boundary_sorted = uniq[counts == 1]
+
+    # Recover original orientation rows corresponding to boundary triangles
+    boundary_set = {tuple(row) for row in boundary_sorted}
+    boundary_faces = np.array([row for row in tri_faces if tuple(sorted(row)) in boundary_set], dtype=int)
 
     panels = [
-        (0, 0, diff_fields["du_mag"], "Displacement magnitude relative error", "Δ||u|| [%]", disp_clim),
-        (0, 1, diff_fields["ds1"], "Max principal stress relative error", "Δs1 [%]", stress_clim),
-        (0, 2, diff_fields["ds3"], "Min principal stress relative error", "Δs3 [%]", stress_clim),
-        (1, 0, diff_fields["de1"], "Max principal strain relative error", "Δe1 [%]", strain_clim),
-        (1, 1, diff_fields["de3"], "Min principal strain relative error", "Δe3 [%]", strain_clim),
-        (1, 2, diff_fields["duz"], "Z-displacement relative error", "Δuz [%]", uz_clim),
+        (diff_fields["du_mag"], "Δ||u|| [%]", "Displacement magnitude relative error"),
+        (diff_fields["ds1"],    "Δs1 [%]",   "Max principal stress relative error"),
+        (diff_fields["ds3"],    "Δs3 [%]",   "Min principal stress relative error"),
+        (diff_fields["de1"],    "Δe1 [%]",   "Max principal strain relative error"),
+        (diff_fields["de3"],    "Δe3 [%]",   "Min principal strain relative error"),
+        (diff_fields["duz"],    "Δuz [%]",   "Z-displacement relative error"),
     ]
 
-    for row, col, values, title, scalar_name, clim in panels:
-        pl.subplot(row, col)
-        add_diff_plot(pl, mesh, values, title, scalar_name, clim)
+    x, y, z = points[:, 0], points[:, 1], points[:, 2]
 
-    pl.add_text(
-        f'ANSYS vs own solver relative errors [%] – "{title_str}"\n(defined as (own - ANSYS) / |ANSYS| × 100)',
-        font_size=13,
-        color="black",
-        position="upper_edge",
-    )
-    pl.show()
+    for elem_values, cbar_label, field_title in panels:
+        elem_values = np.asarray(elem_values, dtype=float)
+        node_acc = np.zeros(len(points), dtype=float)
+        node_cnt = np.zeros(len(points), dtype=float)
+        for e, tet in enumerate(cells):
+            node_acc[tet] += elem_values[e]
+            node_cnt[tet] += 1.0
+        node_values = node_acc / np.maximum(node_cnt, 1.0)
+
+        finite = np.isfinite(node_values)
+        vmax = np.nanmax(np.abs(node_values[finite])) if np.any(finite) else 1.0
+        if not np.isfinite(vmax) or vmax == 0:
+            vmax = 1.0
+        norm = colors.Normalize(vmin=-vmax, vmax=vmax)
+        cmap = plt.get_cmap(PLOT_CMAP)
+
+        fig = plt.figure(figsize=(10.2, 5.2), facecolor='white')
+        axes = [fig.add_subplot(1, 2, i + 1, projection='3d') for i in range(2)]
+
+        tri_vals = node_values[boundary_faces].mean(axis=1)
+        tri_colors = cmap(norm(tri_vals))
+
+        for ax, (elev, azim, _view_label) in zip(axes, MATPLOTLIB_VIEWS):
+            surf = ax.plot_trisurf(
+                x, y, z,
+                triangles=boundary_faces,
+                linewidth=0.15 if SHOW_EDGES else 0.0,
+                edgecolor='lightgray' if SHOW_EDGES else 'none',
+                antialiased=True,
+                shade=False,
+            )
+            surf.set_facecolors(tri_colors)
+            surf.set_edgecolor('lightgray' if SHOW_EDGES else 'none')
+
+            ax.view_init(elev=elev, azim=azim)
+            ax.set_box_aspect((np.ptp(x), np.ptp(y), np.ptp(z)))
+            try:
+                ax.xaxis.pane.fill = False
+                ax.yaxis.pane.fill = False
+                ax.zaxis.pane.fill = False
+                ax.set_facecolor('none')
+                ax.patch.set_alpha(0.0)
+                ax.set_frame_on(False)
+                ax.xaxis.pane.set_edgecolor((1, 1, 1, 0))
+                ax.yaxis.pane.set_edgecolor((1, 1, 1, 0))
+                ax.zaxis.pane.set_edgecolor((1, 1, 1, 0))
+            except Exception:
+                pass
+
+
+            
+            ax.set_xlabel('X [mm]')
+            ax.set_ylabel('Y [mm]')
+            ax.set_zlabel('Z [mm]')
+            ax.set_xlabel('')
+
+            x_corner = np.nanmin(x)
+            y_corner = np.nanmin(y)
+            z_corner = np.nanmin(z)
+            ax.text(x_corner, y_corner, z_corner, 'X [mm]', zdir=None)
+
+
+            # Reduce dense / overlapping X and Y tick labels
+            x0 = 20.0 * np.floor(np.nanmin(x) / 20.0)
+            x1 = 20.0 * np.ceil(np.nanmax(x) / 20.0)
+            y0 = 20.0 * np.floor(np.nanmin(y) / 20.0)
+            y1 = 20.0 * np.ceil(np.nanmax(y) / 20.0)
+            z0 = 20.0 * np.floor(np.nanmin(z) / 20.0)
+            z1 = 20.0 * np.ceil(np.nanmax(z) / 20.0)
+
+            ax.set_xticks(np.arange(x0, x1 + 1e-9, 20.0))
+            ax.set_yticks(np.arange(y0, y1 + 1e-9, 20.0))
+            ax.set_zticks(np.arange(z0, z1 + 1e-9, 20.0))
+            ax.tick_params(axis='x', labelsize=8, pad=1)
+            ax.tick_params(axis='y', labelsize=8, pad=1)
+            ax.tick_params(axis='z', labelsize=8, pad=1)
+            ax.xaxis.label.set_size(10)
+            ax.yaxis.label.set_size(10)
+            ax.zaxis.label.set_size(10)
+
+            ax.grid(False)
+            ax.set_facecolor('white')
+
+            # Cleaner panes like the reference
+            try:
+                ax.xaxis.pane.fill = False
+                ax.yaxis.pane.fill = False
+                ax.zaxis.pane.fill = False
+            except Exception:
+                pass
+
+        fig.subplots_adjust(left=0.08, right=0.80, bottom=0.09, top=0.84, wspace=-0.32)
+
+
+        cax = fig.add_axes([0.735, 0.20, 0.014, 0.54])
+
+
+        mappable = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+        mappable.set_array(node_values)
+        cbar = fig.colorbar(mappable, cax=cax)
+
+        cbar.set_label(cbar_label, rotation=90, labelpad=10)
+        #\n(defined as (own solver - ANSYS) / |ANSYS| x 100)
+        fig.suptitle(
+            f"Relative error [%]: {field_title} - {title_str}",
+            fontsize=12,
+            y=0.91,
+        )
+
+        safe_name = field_title.lower().replace(' ', '_').replace('-', '_')
+        out_path = OUTPUT_DIR / f'{safe_name}.png'
+        fig.savefig(out_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.close(fig)
+        print(f'Saved: {out_path}')
 
 
 def compute_scalar_metrics(own_vals, ref_vals, name, unit=""):
@@ -347,7 +468,7 @@ def compute_vector_metrics(own_vec, ref_vec, name, unit=""):
 
 
 def print_metrics_table(metrics_list):
-    print("Numerical error metrics (own solver vs ANSYS)")
+    print("\nNumerical error metrics (own solver vs ANSYS)")
     print("-" * 110)
     header = f"{'Quantity':<24} {'n':>8} {'Max abs err':>16} {'L2 abs err':>16} {'Rel L2 [%]':>12} {'RMSE':>16} {'Rel RMSE [%]':>14}"
     print(header)
@@ -454,25 +575,3 @@ metrics = [
 
 print_metrics_table(metrics)
 plot_difference_fields(mesh, diff_fields, TITLE_STR)
-
-# Check if absolute stress errors are actually large, or just inflated by near-zero reference
-valid = np.isfinite(s1_ansys) & np.isfinite(s1_own)
-
-abs_err_s1 = np.abs(s1_own[valid] - s1_ansys[valid])
-ref_s1 = np.abs(s1_ansys[valid])
-
-# What fraction of elements have BOTH large relative AND large absolute error?
-large_rel  = (abs_err_s1 / (ref_s1 + 1e-12 * ref_s1.max())) > 0.20  # >20% rel error
-large_abs  = abs_err_s1 > 1.0  # >1 MPa absolute error
-
-print("Elements with >20% relative error:", large_rel.sum(), "/", valid.sum())
-print("Elements with >1 MPa absolute error:", large_abs.sum(), "/", valid.sum())
-print("Both large rel AND large abs:", (large_rel & large_abs).sum())
-print()
-print("Max absolute stress error [MPa]:", abs_err_s1.max())
-print("Median absolute stress error [MPa]:", np.median(abs_err_s1))
-print("90th percentile absolute stress error [MPa]:", np.percentile(abs_err_s1, 90))
-print()
-# Check if near-zero reference values are inflating the percentage
-print("Median |ANSYS s1| [MPa]:", np.median(ref_s1))
-print("Fraction of elements where |ANSYS s1| < 1 MPa:", (ref_s1 < 1.0).mean())
